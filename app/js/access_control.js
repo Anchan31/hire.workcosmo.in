@@ -12,10 +12,8 @@ import { isModuleEnabled } from "../../shared/js/module_registry.js";
 
 export const FEATURES = {
     recruitModule: "recruitModule",
-    learnModule: "learnModule",
     coreModule: "coreModule",
     performModule: "performModule",
-    aiModule: "aiModule",
     careerPortal: "careerPortal",
     shareProfile: "shareProfile",
     qrBridgeLogin: "qrBridgeLogin",
@@ -62,13 +60,11 @@ const ACTIVE_STATUSES = new Set(["trialing", "active", "grace"]);
 const RESERVED_HOSTS = new Set([
     "anchan31",
     "access",
-    "ai",
     "app",
     "candidate",
     "careers",
     "core",
     "hire",
-    "learn",
     "perform",
     "share",
     "space",
@@ -90,18 +86,14 @@ const APEX_HOSTS = new Set([
     "www.space.workcosmo.in",
     "hire.workcosmo.in",
     "www.hire.workcosmo.in",
-    "learn.workcosmo.in",
-    "www.learn.workcosmo.in",
     "core.workcosmo.in",
     "www.core.workcosmo.in",
     "perform.workcosmo.in",
-    "www.perform.workcosmo.in",
-    "ai.workcosmo.in",
-    "www.ai.workcosmo.in"
+    "www.perform.workcosmo.in"
 ]);
 
 const TENANT_QUERY_KEYS = ["companyId", "company", "cid", "clientId", "subdomain"];
-const PRODUCT_HOSTS = new Set(["hire", "learn", "core", "perform", "ai"]);
+const PRODUCT_HOSTS = new Set(["hire", "core", "perform"]);
 const PATH_RESERVED_SEGMENTS = new Set([
     "",
     "app",
