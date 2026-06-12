@@ -1,5 +1,6 @@
 import {
     auth, db, getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail,
+    signInWithCustomToken,
     createUserWithEmailAndPassword as createUserSecondary,
     createSecondaryApp, deleteApp, firebaseConfig,
     collection, addDoc, getDocs, getDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, setDoc, query, where, orderBy, writeBatch, limit, runTransaction, startAfter
@@ -868,16 +869,96 @@ if (loginBtn) loginBtn.addEventListener('click', handleLogin);
 // Enter Key Support for Login
 const authClientIdInput = document.getElementById('auth-client-id');
 
+async function performSSOLogin(idToken) {
+    const isLocal = window.location.hostname.toLowerCase() === 'localhost' || window.location.hostname.toLowerCase() === '127.0.0.1';
+    const urls = [];
+    if (isLocal) {
+        urls.push("http://localhost:8080/api/sso");
+    }
+    urls.push("https://workcosmo.in/api/sso");
+
+    let lastError = null;
+    for (const url of urls) {
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.customToken) return data.customToken;
+            }
+        } catch (err) {
+            lastError = err;
+        }
+    }
+    throw lastError || new Error("SSO Token Exchange failed");
+}
+
+async function checkAndHandleSSO() {
+    const params = new URLSearchParams(window.location.search);
+    const ssoToken = params.get("ssoToken");
+    const tenant = resolveTenantClientId({ includeSession: true, includeInput: false });
+
+    if (ssoToken) {
+        try {
+            console.log("SSO token found in URL, exchanging for custom token...");
+            
+            if (tenant) {
+                sessionStorage.setItem('tenant_client_id', tenant);
+                const authClientIdInput = document.getElementById('auth-client-id');
+                if (authClientIdInput) authClientIdInput.value = tenant;
+            }
+
+            const errorP = document.getElementById('auth-error');
+            if (errorP) {
+                errorP.innerText = "Signing in with Space Single Sign-On...";
+                errorP.classList.remove('hidden');
+                errorP.className = "text-center text-blue-500 font-semibold";
+            }
+
+            const customToken = await performSSOLogin(ssoToken);
+            console.log("SSO token exchanged successfully, signing in...");
+            await signInWithCustomToken(auth, customToken);
+            
+            // Clear ssoToken from URL to keep it clean
+            params.delete("ssoToken");
+            const newSearch = params.toString();
+            const cleanUrl = window.location.pathname + (newSearch ? "?" + newSearch : "");
+            window.history.replaceState({}, document.title, cleanUrl);
+        } catch (err) {
+            console.error("SSO authentication failed:", err);
+            const errorP = document.getElementById('auth-error');
+            if (errorP) {
+                errorP.innerText = "Single Sign-On failed: " + err.message;
+                errorP.classList.remove('hidden');
+                errorP.className = "text-center text-red-500 font-semibold";
+            }
+        }
+    }
+}
+
 function applyResolvedTenantToLogin() {
     const queryTenant = getTenantFromQuery();
     const hostTenant = getTenantFromHost();
     const tenant = resolveTenantClientId({ includeSession: true, includeInput: false });
-    const host = window.location.hostname.toLowerCase();
-    const isHireHost = host === 'hire.workcosmo.in' || host === 'www.hire.workcosmo.in';
+    
+    const params = new URLSearchParams(window.location.search);
+    const hasSsoToken = params.has("ssoToken");
 
-    if (isHireHost && !tenant) {
-        window.location.replace('https://space.workcosmo.in');
+    // Redirect to Space login instead of showing local auth UI in production
+    const host = window.location.hostname.toLowerCase();
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
+    
+    if (!isLocal && !hasSsoToken) {
+        const cid = resolveTenantClientId({ includeSession: true, includeInput: false });
+        const spaceUrl = cid ? `https://space.workcosmo.in?companyId=${cid}` : 'https://space.workcosmo.in';
+        window.location.replace(spaceUrl);
         return;
+    } else {
+        document.getElementById('main-app').classList.add('hidden');
+        document.getElementById('auth-container').classList.remove('hidden');
     }
 
     if (queryTenant) {
@@ -895,6 +976,7 @@ function applyResolvedTenantToLogin() {
     }
 }
 
+checkAndHandleSSO();
 applyResolvedTenantToLogin();
 authClientIdInput?.addEventListener('input', (e) => {
     e.target.value = normalizeClientId(e.target.value);
@@ -1121,11 +1203,20 @@ onAuthStateChanged(auth, async (user) => {
         currentUser = null;
         currentUserProfile = null;
         stopIdleTimer();
-        // Redirect to Space login instead of showing local auth UI
-        const cid = resolveTenantClientId({ includeSession: true, includeInput: false });
-        const spaceUrl = cid ? `https://space.workcosmo.in?companyId=${cid}` : 'https://space.workcosmo.in';
-        window.location.replace(spaceUrl);
-        return;
+        
+        // Redirect to Space login instead of showing local auth UI in production
+        const host = window.location.hostname.toLowerCase();
+        const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
+        
+        if (!isLocal) {
+            const cid = resolveTenantClientId({ includeSession: true, includeInput: false });
+            const spaceUrl = cid ? `https://space.workcosmo.in?companyId=${cid}` : 'https://space.workcosmo.in';
+            window.location.replace(spaceUrl);
+            return;
+        } else {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('auth-container').classList.remove('hidden');
+        }
     }
 });
 
