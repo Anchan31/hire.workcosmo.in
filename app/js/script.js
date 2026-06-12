@@ -942,37 +942,11 @@ async function checkAndHandleSSO() {
 function applyResolvedTenantToLogin() {
     const queryTenant = getTenantFromQuery();
     const hostTenant = getTenantFromHost();
-    const tenant = resolveTenantClientId({ includeSession: true, includeInput: false });
-    
-    const params = new URLSearchParams(window.location.search);
-    const hasSsoToken = params.has("ssoToken");
-
-    // Redirect to Space login instead of showing local auth UI in production
-    const host = window.location.hostname.toLowerCase();
-    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
-    
-    if (!isLocal && !hasSsoToken) {
-        const cid = resolveTenantClientId({ includeSession: true, includeInput: false });
-        const spaceUrl = cid ? `https://space.workcosmo.in?companyId=${cid}` : 'https://space.workcosmo.in';
-        window.location.replace(spaceUrl);
-        return;
-    } else {
-        document.getElementById('main-app').classList.add('hidden');
-        document.getElementById('auth-container').classList.remove('hidden');
-    }
 
     if (queryTenant) {
         sessionStorage.setItem('tenant_client_id', queryTenant);
     } else if (hostTenant) {
         sessionStorage.setItem('tenant_client_id', hostTenant);
-    }
-
-    if (!authClientIdInput || !tenant) return;
-
-    authClientIdInput.value = tenant;
-    if (hostTenant) {
-        authClientIdInput.readOnly = true;
-        authClientIdInput.title = 'Workspace is determined by your company URL';
     }
 }
 
@@ -1164,7 +1138,8 @@ onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         currentUserProfile = profile;
 
-        document.getElementById('auth-container').classList.add('hidden');
+        const authContainer = document.getElementById('auth-container');
+        if (authContainer) authContainer.classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
 
         const fab = document.getElementById('fab-container');
@@ -1204,18 +1179,20 @@ onAuthStateChanged(auth, async (user) => {
         currentUserProfile = null;
         stopIdleTimer();
         
-        // Redirect to Space login instead of showing local auth UI in production
-        const host = window.location.hostname.toLowerCase();
-        const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
-        
-        if (!isLocal) {
+        const params = new URLSearchParams(window.location.search);
+        const hasSsoToken = params.has("ssoToken");
+
+        if (!hasSsoToken) {
+            const host = window.location.hostname.toLowerCase();
+            const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
             const cid = resolveTenantClientId({ includeSession: true, includeInput: false });
-            const spaceUrl = cid ? `https://space.workcosmo.in?companyId=${cid}` : 'https://space.workcosmo.in';
+            
+            let spaceUrl = cid ? `https://space.workcosmo.in?companyId=${cid}` : 'https://space.workcosmo.in';
+            if (isLocal) {
+                spaceUrl = cid ? `http://localhost:8090?companyId=${cid}` : 'http://localhost:8090';
+            }
+            
             window.location.replace(spaceUrl);
-            return;
-        } else {
-            document.getElementById('main-app').classList.add('hidden');
-            document.getElementById('auth-container').classList.remove('hidden');
         }
     }
 });
