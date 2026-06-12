@@ -246,6 +246,10 @@
 
         .modal-resume-preview {
             border: 2px solid #6366f1;
+        }
+
+        .modal-resume-preview {
+            border: 2px solid #6366f1;
             box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
         }
     </style>
@@ -253,11 +257,22 @@
 
 <body class="antialiased">
 
+    <!-- Auth Loader -->
+    <div id="auth-loader" class="fixed inset-0 bg-white dark:bg-[#0b1120] z-[9999] flex items-center justify-center">
+        <div class="text-center">
+            <div class="flex items-center gap-3 text-2xl font-black text-slate-900 dark:text-white mb-8 justify-center">
+                <img src="https://workcosmo.in/src/images/ngu_logo.png" alt="Workcosmo" class="h-8">
+                <span>Workcosmo Hire</span>
+            </div>
+            <div class="w-10 h-10 border-4 border-slate-200 dark:border-slate-800 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p id="auth-loader-text" class="text-slate-500 dark:text-slate-400 font-medium">Verifying your session...</p>
+        </div>
+    </div>
+
     <!-- MODALS SECTION -->
     <div id="modal-container">
 
         <!-- Auth Section -->
-        <div id="auth-container" class="hidden fixed inset-0 z-[100] flex overflow-hidden">
             <!-- Left Side: Branding/Cinematic -->
             <div class="hidden lg:flex lg:w-1/2 relative mesh-bg items-center justify-center overflow-hidden">
                 <!-- Animated decorative blobs -->

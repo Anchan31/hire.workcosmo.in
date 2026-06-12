@@ -911,6 +911,11 @@ async function checkAndHandleSSO() {
                 if (authClientIdInput) authClientIdInput.value = tenant;
             }
 
+            const loaderText = document.getElementById('auth-loader-text');
+            if (loaderText) {
+                loaderText.innerText = "Signing in with Space Single Sign-On...";
+            }
+            
             const errorP = document.getElementById('auth-error');
             if (errorP) {
                 errorP.innerText = "Signing in with Space Single Sign-On...";
@@ -1140,6 +1145,8 @@ onAuthStateChanged(auth, async (user) => {
 
         const authContainer = document.getElementById('auth-container');
         if (authContainer) authContainer.classList.add('hidden');
+        const authLoader = document.getElementById('auth-loader');
+        if (authLoader) authLoader.classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
 
         const fab = document.getElementById('fab-container');
