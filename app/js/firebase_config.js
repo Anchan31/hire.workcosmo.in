@@ -1,4 +1,5 @@
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
     getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, setPersistence, browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -6,13 +7,13 @@ import { initializeFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/f
 
 // --- FIREBASE CONFIG ---
 export const firebaseConfig = {
-    apiKey: "AIzaSyDKuFUJyHUl5AIFSFHCg-4S_wadsha6Et4",
-    authDomain: "recruitment-suite-hr.firebaseapp.com",
-    projectId: "recruitment-suite-hr",
-    storageBucket: "recruitment-suite-hr.firebasestorage.app",
-    messagingSenderId: "1049067446272",
-    appId: "1:1049067446272:web:a0eb4e5a9fac1589a8f8e5",
-    measurementId: "G-87FVXXYEP7"
+    apiKey: "AIzaSyA5EVkg2K1YoP65Ej3HBGgfHDBOOwnKbSs",
+    authDomain: "inworkcosmo.firebaseapp.com",
+    projectId: "inworkcosmo",
+    storageBucket: "inworkcosmo.firebasestorage.app",
+    messagingSenderId: "384225621712",
+    appId: "1:384225621712:web:5767b990f5b588a43350d5",
+    measurementId: "G-TJH9MJCZHC"
 };
 
 export const app = initializeApp(firebaseConfig);
